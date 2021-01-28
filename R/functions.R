@@ -1,26 +1,20 @@
 # FUNCTIONS ---------------------------------------------------------------
 
-#' Set Future plan to multisession
+#' Leiden graph-based clustering
 #'
-#' @param num.workers Number of sessions
-#' @param memory.per.worker Memory per session
+#' leidenbase wrapper function to parse and select results
 #'
+#' @param res.param Resolution
+#' @param graph Graph
+#' @param seed.param Seed
+#' @param return.params Return cluster-level results
+#' @param return.clusters Return cell-level results
+#' @param num.iter Number of leidenbase iterations
+#'
+#' @return List containing clustering and/or parameter results
 #' @export
-StartFutureLapply <- function(num.workers = 8, memory.per.worker = 1000) {
-  future::plan(strategy = "multisession", workers = num.workers, gc = FALSE)
-  options(future.globals.maxSize = memory.per.worker * 1024^2)
-}
-
-#' Set Future plan to sequential
 #'
-#' @export
-StopFutureLapply <- function() {
-  future:::ClusterRegistry("stop")
-  future::plan(strategy = "sequential")
-  ui_done("Multisession stopped.")
-}
-
-
+#' @examples
 Cluster <- function(res.param, graph, seed.param, return.params = TRUE, return.clusters = FALSE, num.iter = 1) {
 
   cluster_res <- leidenbase::leiden_find_partition(graph,
@@ -77,19 +71,6 @@ ScanResolutions <- function(g,
   }
   usethis::ui_done("Found bounds ({params[1]}, {params[2]})")
   return(params)
-}
-
-GeosketchSample <- function(object, reduction, dims, num.cells) {
-  if(exists("geosketch")) {
-    geosketch <- reticulate::import("geosketch")
-  }
-  stopifnot(reduction %in% names(object@reductions))
-  stopifnot(ncol(object@reductions[[reduction]]) > dims)
-
-  embeddings <- object@reductions[[reduction]]@cell.embeddings[, 1:dims]
-  index <- unlist(geosketch$gs(embeddings, as.integer(num.cells)))
-  sketch <- object[, index]
-  return(sketch)
 }
 
 PrepareGraph <- function(object, reduction, dims, knn) {

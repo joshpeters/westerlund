@@ -14,19 +14,27 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: 
     Seurat,
+    igraph,
     Matrix,
-    data.table,
-    dplyr,
     future,
+    future.apply,
     leidenbase,
     assertthat, 
+    dplyr,
+    data.table,
     glue, 
-    reticulate, 
     stringr,
     usethis,
+    reticulate,
     presto,
     qdapTools,
     pbapply,
-    mclust
+    mclust,
+    clustree,
+    ggeasy,
+    ggraph,
+    ggrastr,
+    ggrepel,
+    colorspace
 URL: https://github.com/joshpeters/westerlund
 BugReports: https://github.com/joshpeters/westerlund/issues
