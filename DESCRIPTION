@@ -1,0 +1,30 @@
+Package: westerlund
+Title: A toolkit for single-cell data
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Josh",
+           family = "Peters",
+           role = c("aut", "cre"),
+           email = "petersjm@mit.edu")
+Description: westerlund is a toolkit for analyzing single-cell RNA-sequencing data built on top of Seurat.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    Seurat,
+    Matrix,
+    data.table,
+    dplyr,
+    future,
+    leidenbase,
+    assertthat, 
+    glue, 
+    reticulate, 
+    stringr,
+    usethis,
+    presto,
+    qdapTools,
+    pbapply,
+    mclust
