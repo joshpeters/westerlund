@@ -6,16 +6,14 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of westerlund is to …
+`westerlund` is a toolkit for single-cell RNA-sequencing analysis built
+on top of Seurat providing functions to quickly and comprehensively
+assess clustering results. Inspired by many publications and prior
+packages (see [References](#refs)), `westerlund` enables data sketching,
+cluster bootstrapping, automatic and assisted resolution scanning, and
+metric visualizations.
 
 ## Installation
-
-You can install the released version of westerlund from
-[CRAN](https://CRAN.R-project.org) with:
-
-    install.packages("westerlund")
-
-And the development version from [GitHub](https://github.com/) with:
 
     # install.packages("devtools")
     devtools::install_github("joshpeters/westerlund")
@@ -55,3 +53,5 @@ You can also embed plots, for example:
 
 In that case, don’t forget to commit and push the resulting figure
 files, so they display on GitHub and CRAN.
+
+## References
