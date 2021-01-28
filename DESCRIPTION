@@ -28,3 +28,5 @@ Imports:
     qdapTools,
     pbapply,
     mclust
+URL: https://github.com/joshpeters/westerlund
+BugReports: https://github.com/joshpeters/westerlund/issues
