@@ -124,7 +124,7 @@ schex::plot_hexbin_gene(object, type = "data", gene = gene, action = "median") +
 FeaturePlot(object, gene, cols = c("gray75", colorspace::sequential_hcl(palette = "Reds", n = 5)[1]), order = TRUE) +
   RemoveAxes() + RemoveBackgrounds(outline = FALSE) + SpaceAxesTitles() + labs(x = "UMAP1", y = "UMAP2")
   
-
-
+OutlinedDotPlot(object, features = tnk_model$lab.con[1:10], cols = c("gray80", "black")) + 
+  coord_flip() + RotatedAxis() + labs(x = "Type", y = "Gene") + SpaceAxesTitles() + RemoveBackgrounds(outline = TRUE)
 
 ```

@@ -31,11 +31,13 @@ Imports:
     pbapply,
     mclust,
     clustree,
+    ggplot2,
     ggeasy,
     ggraph,
     ggrastr,
     ggrepel,
-    colorspace
+    colorspace,
+    stats
 Suggests:
     SeuratData
 URL: https://github.com/joshpeters/westerlund

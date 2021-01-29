@@ -19,11 +19,31 @@ AddModuleScoreScaled(
 )
 }
 \arguments{
+\item{object}{Seurat object}
+
+\item{features}{Genes to use}
+
+\item{pool}{Genes to pull from for controls}
+
+\item{nbin}{Number of bins}
+
+\item{ctrl}{Number of control genes}
+
+\item{k}{Feature clusters}
+
+\item{assay}{Assay to use}
+
+\item{name}{Prefix for metadata columns}
+
+\item{seed}{Seed}
+
+\item{search}{Search for gene names}
+
 \item{...}{}
 }
 \value{
 Seurat object
 }
 \description{
-AddModuleScore from Seurat using scaled expression values
+See \code{?Seurat::AddModuleScore}
 }

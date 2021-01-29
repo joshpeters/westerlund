@@ -41,7 +41,7 @@ DetectAmbientRNA <- function(data,
                                     batches = batches,
                                     anno = NULL,
                                     fit.n = fit.n,
-                                    coefs = global_coefs)
+                                    coefs.use = global_coefs)
 
   # run average model on types
   usethis::ui_done("Fitting consensus model to cell types")
@@ -50,7 +50,7 @@ DetectAmbientRNA <- function(data,
                                  batches = batches,
                                  anno = NULL,
                                  fit.n = fit.n,
-                                 coefs = global_coefs)
+                                 coefs.use = global_coefs)
 
   # return data
   return(list(lineage_models = lineage_models, type_models = type_models))
@@ -196,7 +196,7 @@ PlotAmbientRNA <- function(u1,
     xlab("log2(TP10K) (non-group)") +
     ylab("log2(TP10K) (group)") +
     scale_colour_manual(values = c("darkred", "darkorange", "gray75", "gray75")) +
-    theme_classic(base_size = 18) + SpaceAxesTitles() + RemoveBackgrounds(outline = TRUE)
+    ggplot2::theme_classic(base_size = 18) + SpaceAxesTitles() + RemoveBackgrounds(outline = TRUE)
 
   # add regression lines
   coefs <- as.matrix(coefs)

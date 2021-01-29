@@ -97,20 +97,24 @@ CalcPCHeuristics <- function(
 
 #' AddModuleScore from Seurat using scaled expression values
 #'
-#' @param object
-#' @param features
-#' @param pool
-#' @param nbin
-#' @param ctrl
-#' @param k
-#' @param assay
-#' @param name
-#' @param seed
-#' @param search
+#' See `?Seurat::AddModuleScore`
+#'
+#' @param object Seurat object
+#' @param features Genes to use
+#' @param pool Genes to pull from for controls
+#' @param nbin Number of bins
+#' @param ctrl Number of control genes
+#' @param k Feature clusters
+#' @param assay Assay to use
+#' @param name Prefix for metadata columns
+#' @param seed Seed
+#' @param search Search for gene names
 #' @param ...
 #'
 #' @return Seurat object
 #' @export
+#' @importFrom Seurat DefaultAssay `DefaultAssay<-` GetAssayData UpdateSymbolList CaseMatch
+#' @importfrom
 AddModuleScoreScaled <- function(
   object,
   features,
@@ -146,8 +150,7 @@ AddModuleScoreScaled <- function(
       stop("Missing input feature list")
     }
     features <- lapply(
-      X = features,
-      FUN = function(x) {
+      features, function(x) {
         missing.features <- setdiff(x = x, y = rownames(x = assay.data))
         if (length(x = missing.features) > 0) {
           warning(
@@ -217,8 +220,7 @@ AddModuleScoreScaled <- function(
   pool <- rownames(x = assay.data)
   data.avg <- Matrix::rowMeans(x = assay.data[pool, ])
   data.avg <- data.avg[order(data.avg)]
-  data.cut <- cut_number(x = data.avg + rnorm(n = length(data.avg))/1e30, n = nbin, labels = FALSE, right = FALSE)
-  #data.cut <- as.numeric(x = Hmisc::cut2(x = data.avg, m = round(x = length(x = data.avg) / (nbin + 1))))
+  data.cut <- ggplot2::cut_number(x = data.avg + stats::rnorm(n = length(data.avg))/1e30, n = nbin, labels = FALSE, right = FALSE)
   names(x = data.cut) <- names(x = data.avg)
   ctrl.use <- vector(mode = "list", length = cluster.length)
   for (i in 1:cluster.length) {
@@ -242,10 +244,10 @@ AddModuleScoreScaled <- function(
   )
 
   all_genes <- c(unique(unlist(ctrl.use)), unique(unlist(features)))
-  ui_todo("Scaling data...")
+  usethis::ui_todo("Scaling data...")
   assay.data <- t(apply(assay.data[all_genes, ], 1, scale, center = FALSE))
-  ui_done("Done")
-  gc()
+  usethis::ui_done("Done")
+  Clean()
   for (i in 1:length(ctrl.use)) {
     features.use <- ctrl.use[[i]]
     ctrl.scores[i, ] <- Matrix::colMeans(x = assay.data[features.use, ])
