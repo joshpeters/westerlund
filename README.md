@@ -13,7 +13,7 @@ packages (highlighted below), `westerlund` enables data sketching,
 cluster bootstrapping, automatic and assisted resolution scanning, and
 metric visualizations.
 
-## Why `westerlund`?
+## Why `westerlund` ?
 
 The functions within `westerlund` provide additional critical
 functionality for common single-cell analyses that have been implemented
@@ -39,7 +39,7 @@ al.](https://doi.org/10.1038/s41590-018-0051-0),
 1. Gene specificity index calculations as proposed by [Tosches et
 al.](https://doi.org/10.1126/science.aar4237),  
 1. Max-to-second expression ratios as utilized in [Zilions et
-al.](https://doi.org/10.1016/j.immuni.2019.03.009).
+al.](https://doi.org/10.1016/j.immuni.2019.03.009)
 
 These functions are plug and play with `Seurat` objects and can enable
 easy expansion of available scRNA-seq analytical tools.

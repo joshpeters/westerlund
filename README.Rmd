@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 `westerlund` is a toolkit for single-cell RNA-sequencing analysis built on top of Seurat providing functions to quickly and comprehensively assess clustering results. Inspired by many publications and prior packages (highlighted below), `westerlund` enables data sketching, cluster bootstrapping, automatic and assisted resolution scanning, and metric visualizations. 
 
-## Why `westerlund`?
+## Why `westerlund` ?
 The functions within `westerlund` provide additional critical functionality for common single-cell analyses that have been implemented in a range of outstanding publications, including:   
 1. Supporting functions based on the recommendations by the authors of [pipeComp](https://doi.org/10.1186/s13059-020-02136-7),  
 1. Leiden clustering implemented in the `leidenbase` algorithm by the [Trapnell Lab](https://github.com/cole-trapnell-lab/leidenbase),  
@@ -33,7 +33,7 @@ The functions within `westerlund` provide additional critical functionality for 
 1. Gene list scoring using scaled expression instead of normalized expression as utilized by [Smillie et al.](https://doi.org/10.1016/j.cell.2019.06.029),  
 1. Bayesian classifiers as implemented by [Zeymour et al.](https://doi.org/10.1038/s41590-018-0051-0),  
 1. Gene specificity index calculations as proposed by [Tosches et al.](https://doi.org/10.1126/science.aar4237),  
-1. Max-to-second expression ratios as utilized in [Zilions et al.](https://doi.org/10.1016/j.immuni.2019.03.009).
+1. Max-to-second expression ratios as utilized in [Zilions et al.](https://doi.org/10.1016/j.immuni.2019.03.009)
 
 These functions are plug and play with `Seurat` objects and can enable easy expansion of available scRNA-seq analytical tools.
 
