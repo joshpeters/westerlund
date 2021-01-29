@@ -26,6 +26,8 @@ knitr::opts_chunk$set(
 
 `westerlund` utilizes many ideas and functions developed and published by wonderful researchers cited here and within functions. Please cite original and derivative work if possible and deemed appropriate. If you come across work within this package that is derivative but not appropriately cited, please contact us right away so we can include that documentation.
 
+Lastly, `westerlund` will serve as the main repository for methods related to upcoming manuscripts (hopefully `r emo::ji("sweat_smile")`). The goal is to streamline methods writing and enable easier use of data or methods upon publication. These include new single-cell RNA-sequencing datasets and meta-analyses.
+
 ## Why `westerlund` ?
 The functions within `westerlund` provide additional critical functionality for common single-cell analyses that have been implemented in a range of outstanding publications. `r emo::ji("heavy_check_mark")` indicate completed implementation. Functions include:   
 1. `r emo::ji("heavy_check_mark")` Supporting functions based on the recommendations by the authors of [pipeComp](https://doi.org/10.1186/s13059-020-02136-7),  

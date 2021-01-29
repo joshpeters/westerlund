@@ -23,6 +23,12 @@ come across work within this package that is derivative but not
 appropriately cited, please contact us right away so we can include that
 documentation.
 
+Lastly, `westerlund` will serve as the main repository for methods
+related to upcoming manuscripts (hopefully 😅). The goal is to streamline
+methods writing and enable easier use of data or methods upon
+publication. These include new single-cell RNA-sequencing datasets and
+meta-analyses.
+
 ## Why `westerlund` ?
 
 The functions within `westerlund` provide additional critical
