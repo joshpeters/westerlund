@@ -36,5 +36,7 @@ Imports:
     ggrastr,
     ggrepel,
     colorspace
+Suggests:
+    SeuratData
 URL: https://github.com/joshpeters/westerlund
 BugReports: https://github.com/joshpeters/westerlund/issues

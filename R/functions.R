@@ -332,8 +332,15 @@ VisualizeSWK <- function(object) {
 
 }
 
-DefineMarkers <- function(object, group) {
-  markers <- presto::wilcoxauc(object, group)
+#' Define markers with `presto` with additional metrics
+#'
+#' @param seurat.obj Seurat object
+#' @param group Column in `seurat.obj[[]]` to compare
+#'
+#' @return A data.frame of markers
+#' @export
+DefineMarkers <- function(seurat.obj, group) {
+  markers <- presto::wilcoxauc(seurat.obj, group)
   n <- length(unique(markers$group))
   filtered_markers <- markers %>% dplyr::filter(padj <= 1E-3 & auc >= 0.5 & logFC >= log(1.1))
   StartFutureLapply()
