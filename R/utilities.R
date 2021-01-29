@@ -88,8 +88,6 @@ VarToString <- function(variable) {
 #'
 #' @return
 #' @export
-#'
-#' @examples
 RemoveAxes <- function (..., keep.text = FALSE, keep.ticks = FALSE)
 {
   blank <- element_blank()
@@ -103,6 +101,13 @@ RemoveAxes <- function (..., keep.text = FALSE, keep.ticks = FALSE)
   return(no_axes_theme)
 }
 
+#' Remove backgrounds
+#'
+#' @param outline Keep plot outline
+#' @param ...
+#'
+#' @return
+#' @export
 RemoveBackgrounds <- function(outline = FALSE, ...)
 {
   if (outline) {
@@ -125,18 +130,34 @@ RemoveBackgrounds <- function(outline = FALSE, ...)
   return(no_bg_theme)
 }
 
-SpaceAxesTitles <- function(...) {
-  axes_space_theme <- theme(axis.title.x = element_text(margin = margin(16, 0, 0, 0)),
-                            axis.title.y = element_text(margin = margin(0, 16, 0, 0)),
-                            validate = TRUE, ...)
-  return(axes_space_theme)
+
+#' Space axis titles away from plot area
+#'
+#' @param scale Increase spacing
+#' @param ...
+#'
+#' @return
+#' @export
+SpaceAxisTitles <- function(scale = 1, ...) {
+  theme (
+    axis.title.x = element_text(face = "bold", margin = margin(12*scale, 0, 0, 0)),
+    axis.title.y = element_text(face = "bold", margin = margin(0, 12*scale, 0, 0)),
+    validate = TRUE
+  )
 }
 
+
+#' General plotting theme
+#'
+#' @param base_size
+#' @param ...
+#'
+#' @return
+#' @export
 GeneralTheme <- function(base_size, ...) {
   theme_classic(base_size = base_size, ...) +
     ggeasy::easy_all_text_color("black") +
-    theme (
-
+    theme(
       axis.line = element_blank(),
       plot.title = element_text(size =  base_size, color = "black", face = "bold", margin = margin(0,0,4,0)),
       plot.subtitle = element_text(size = base_size - 2, color = "black", margin = margin(0,0,4,0)),
