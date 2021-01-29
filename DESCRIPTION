@@ -40,3 +40,5 @@ Suggests:
     SeuratData
 URL: https://github.com/joshpeters/westerlund
 BugReports: https://github.com/joshpeters/westerlund/issues
+Depends: 
+    R (>= 2.10)

@@ -6,7 +6,7 @@
 #' @return
 #' @export
 StartFutureLapply <- function(num.workers = 8, memory.per.worker = 1000) {
-  future::plan(multisession, workers = num.workers, gc = FALSE)
+  future::plan("multisession", workers = num.workers, gc = FALSE)
   options(future.globals.maxSize = memory.per.worker * 1024^2)
 }
 
@@ -15,7 +15,7 @@ StartFutureLapply <- function(num.workers = 8, memory.per.worker = 1000) {
 #' @return
 #' @export
 StopFutureLapply <- function() {
-  future::plan(sequential)
+  future::plan("sequential")
   usethis::ui_done("Multisession stopped.")
   Clean()
 }
@@ -111,6 +111,7 @@ RemoveBackgrounds <- function(outline = FALSE, ...)
                          legend.background = element_rect(fill = "transparent", color = "transparent", size = 0),
                          legend.box.background = element_rect(fill = "transparent", color = "transparent", size = 0),
                          panel.grid = element_blank(),
+                         axis.line = element_blank(),
                          validate = TRUE, ...)
   } else {
     no_bg_theme <- theme(panel.background = element_rect(fill = "transparent", color = "transparent", size = 0),

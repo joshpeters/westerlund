@@ -13,20 +13,28 @@ packages (highlighted below), `westerlund` enables data sketching,
 cluster bootstrapping, automatic and assisted resolution scanning, and
 metric visualizations.
 
+`westerlund` utilizes many ideas and functions developed and published
+by wonderful researchers cited here and within functions. Please cite
+original and deriative work if possible and deemed appropriate. If you
+come across work within this package that is derivative but not
+appropriately cited, please contact us right away so we can include that
+documentation.
+
 ## Why `westerlund` ?
 
 The functions within `westerlund` provide additional critical
 functionality for common single-cell analyses that have been implemented
-in a range of outstanding publications, including:  
-1. Supporting functions based on the recommendations by the authors of
-[pipeComp](https://doi.org/10.1186/s13059-020-02136-7),  
+in a range of outstanding publications. ✔️ indicate completed
+implementation. Functions include:  
+1. ✔️ Supporting functions based on the recommendations by the authors
+of [pipeComp](https://doi.org/10.1186/s13059-020-02136-7),  
 1. Leiden clustering implemented in the `leidenbase` algorithm by the
 [Trapnell Lab](https://github.com/cole-trapnell-lab/leidenbase),  
 1. Interpretable resolution and k-nearest neighbors scanning for
 determining the optimal cluster granularity utilizing the `future`
 framework,  
-1. Heuristic metrics to determine appropriate PCs to utilize for further
-dimensionality reduction and clustering,  
+1. ✔️ Heuristic metrics to determine appropriate PCs to utilize for
+further dimensionality reduction and clustering,  
 1. Cluster robustness measures including SVM classification and adjusted
 Rand index random seed and subset sampling,  
 1. Functions to quickly assess cluster significance based on DE genes
@@ -38,8 +46,13 @@ al.](https://doi.org/10.1016/j.cell.2019.06.029),
 al.](https://doi.org/10.1038/s41590-018-0051-0),  
 1. Gene specificity index calculations as proposed by [Tosches et
 al.](https://doi.org/10.1126/science.aar4237),  
-1. Max-to-second expression ratios as utilized in [Zilions et
-al.](https://doi.org/10.1016/j.immuni.2019.03.009)
+1. Max-to-second expression ratios as utilized by [Zilions et
+al.](https://doi.org/10.1016/j.immuni.2019.03.009),  
+1. Cell proportion modeling as proposed by [Valentine
+Svensson](https://www.nxn.se/valent/2020/11/28/s9jjv32ogiplagwx8xrkjk532p7k28)
+along with standard Wilcoxon rank-sum and Fisher’s exact tests,  
+1. ✔️ Ambient RNA modeling as utilized in [Smillie et
+al.](https://doi.org/10.1016/j.cell.2019.06.029)
 
 These functions are plug and play with `Seurat` objects and can enable
 easy expansion of available scRNA-seq analytical tools.
@@ -59,22 +72,71 @@ library(westerlund)
 
 #SeuratData::InstallData("pbmc3k")
 #SeuratData::InstalledData()
-# object <- SeuratData::LoadData("pbmc3k")
-# object$seurat_annotations <- as.character(object$seurat_annotations)
-# object$seurat_annotations[is.na(object$seurat_annotations)] <- "Unassigned"
-# Idents(object) <- "seurat_annotations"
-# object <- ReduceDims(seurat.obj = object, n.var.features = 3000, n.pcs = 50, remove.genes = NULL)
-# object <- Seurat::RunUMAP(object = object, reduction = "pca", reduction.name = "pca_umap",
-#                   dims = 1:object@misc$pca_metrics$tp_pc, seed.use = 1, verbose = FALSE)
-# plot <- DimPlot(object, reduction = "pca_umap", group.by = "seurat_annotations", pt.size = 1, shuffle = TRUE, label = FALSE, label.size = 6, repel = TRUE)
-# plot + theme_classic(base_size = 18) +
-#   #NoLegend() +
-#   RemoveAxes() + RemoveBackgrounds(outline = FALSE) + SpaceAxesTitles() +
-#   colorspace::scale_color_discrete_qualitative("Dark 3") +
-#   labs(x = "UMAP1", y = "UMAP2", title = "")
-# markers <- DefineMarkers(object, "seurat_annotations")
-# Bcell_markers <- markers %>% filter(group == "B") %>% top_n(100, auc) %>% pull(feature)
-# object <- AddModuleScoreScaled(object, list(Bcell_markers), name = "SMS")
-# object@meta.data[, grep("^MS", colnames(object[[]]))] <- NULL
-# object <- AddModuleScore(object, list(Bcell_markers), name = "MS", nbin = 20, ctrl = 100)
+object <- SeuratData::LoadData("pbmc3k")
+object <- UpdateSeuratObject(object)
+object$seurat_annotations <- as.character(object$seurat_annotations)
+object$seurat_annotations[is.na(object$seurat_annotations)] <- "Unassigned"
+Idents(object) <- "seurat_annotations"
+object <- ReduceDims(seurat.obj = object, n.var.features = 3000, n.pcs = 50, remove.genes = NULL)
+object <- Seurat::RunUMAP(object = object, reduction = "pca", reduction.name = "pca_umap",
+                          dims = 1:object@misc$pca_metrics$tp_pc, seed.use = 1, verbose = FALSE)
+
+# plotting
+plot <- DimPlot(object, reduction = "pca_umap", group.by = "seurat_annotations", pt.size = 1, shuffle = TRUE, label = FALSE, label.size = 6, repel = TRUE)
+plot + theme_classic(base_size = 18) +
+  #NoLegend() +
+  RemoveAxes() + RemoveBackgrounds(outline = FALSE) + SpaceAxesTitles() +
+  colorspace::scale_color_discrete_qualitative("Dark 3") +
+  labs(x = "UMAP1", y = "UMAP2", title = "")
+
+object$cell_type <- object$seurat_annotations
+object$cell_lineage <- recode(object$cell_type, `CD14+ Mono` = "Myeloid", DC = "Myeloid", `FCGR3A+ Mono` = "Myeloid",
+                              `CD8 T` = "TNK", `Memory CD4 T` = "TNK", `Naive CD4 T` = "TNK", NK = "TNK")
+DimPlot(object, reduction = "pca_umap", group.by = "cell_lineage", pt.size = 1, shuffle = TRUE, label = FALSE, label.size = 6, repel = TRUE)
+
+# marker identification
+markers <- DefineMarkers(object, "seurat_annotations")
+object@misc$markers <- markers
+
+# module scoring
+Bcell_markers <- markers %>% filter(group == "B") %>% top_n(100, auc) %>% pull(feature)
+object <- AddModuleScoreScaled(object, list(Bcell_markers), name = "SMS")
+object <- AddModuleScore(object, list(Bcell_markers), name = "MS", nbin = 20, ctrl = 100)
+#object@meta.data[, grep("^MS|^SMS", colnames(object[[]]))] <- NULL
+colnames(object@meta.data)[grep("^MS", colnames(object[[]]))] <- "B_unscaled_score"
+colnames(object@meta.data)[grep("^SMS", colnames(object[[]]))] <- "B_scaled_score"
+FeatureScatter(object, "B_unscaled_score", "B_scaled_score", span = T, smooth = F)
+
+# save object
+usethis::use_data(object, overwrite = TRUE)
+saveRDS(object, "data/pbmc3k_processed.rds")
+
+anno_df <- object[[]] %>% select(cell_lineage, cell_type) %>% distinct()
+anno <- anno_df$cell_type
+names(anno) <- anno_df$cell_lineage
+
+input_data <- GetAssayData(object, slot = "counts")
+TP10K <- sweep(input_data, 2, object$nCount_RNA, '/')*10000
+contam <- DetectAmbientRNA(data = TP10K, 
+                           lineages = object$cell_lineage, 
+                           types = object$cell_type, 
+                           batches = object$orig.ident, 
+                           anno = NULL)
+
+tnk_model <- contam$lineage_models$TNK
+p <- PlotAmbientRNA(u1 = tnk_model$u1, u2 = tnk_model$u2, coefs = tnk_model$coefs,
+               residuals = tnk_model$residuals, fit.cutoff = 2, genes_fit = tnk_model$lab.fit, 
+               label_n = 10)
+p
+
+gene <- "AIF1"
+object <- schex::make_hexbin(object, nbins = sqrt(ncol(object)), dimension_reduction = "pca_umap")
+schex::plot_hexbin_gene(object, type = "data", gene = gene, action = "median") +
+  labs(x = "UMAP1", y = "UMAP2", title = gene) +
+  scale_fill_continuous(low = "gray75", 
+                        high = colorspace::sequential_hcl(palette = "Reds", n = 5)[1], name = "Median\nlog(TP10K+1)") + 
+  theme_classic(base_size = 18) + RemoveAxes() + RemoveBackgrounds() + SpaceAxesTitles()
+FeaturePlot(object, gene, cols = c("gray75", colorspace::sequential_hcl(palette = "Reds", n = 5)[1]), order = TRUE) +
+  RemoveAxes() + RemoveBackgrounds(outline = FALSE) + SpaceAxesTitles() + labs(x = "UMAP1", y = "UMAP2")
+  
 ```

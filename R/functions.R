@@ -463,8 +463,7 @@ AddScore <- function(
       stop("Missing input feature list")
     }
     features <- lapply(
-      X = features,
-      FUN = function(x) {
+      features, function(x) {
         missing.features <- setdiff(x = x, y = rownames(x = assay.data))
         if (length(x = missing.features) > 0) {
           warning(
