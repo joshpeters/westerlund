@@ -1,3 +1,116 @@
+#' Save png, pdf and plot object
+#'
+#' @param plot `ggplot2` object to save
+#' @param filename Filename
+#' @param root Directories to add to /plots or /data
+#' @param h Height
+#' @param w Width
+#' @param s Scale
+#'
+#' @return NULL
+#' @export
+SavePlot <- function(plot, filename, root = "publication", h = 6, w = 6, s = 1) {
+  ggplot2::ggsave(plot = plot, filename = glue::glue("plots/{root}/{filename}.png"),
+         scale = s, width = w, height = h, units = "in", dpi = 300)
+  ggplot2::ggsave(plot = plot, filename = glue::glue("plots/{root}/{filename}.pdf"),
+         scale = s, width = w, height = h, units = "in", dpi = 300)
+  saveRDS(plot, file = glue::glue("data/{root}/plots/{filename}.rds"))
+  usethis::ui_done("Saved")
+}
+
+#' RemoveAxes
+#'
+#' Modified from Seurat::NoAxes()
+#'
+#' @return
+#' @export
+RemoveAxes <- function (..., keep.text = FALSE, keep.ticks = FALSE)
+{
+  blank <- element_blank()
+  no_axes_theme <- theme(axis.line.x = blank,
+                         axis.line.y = blank,
+                         axis.ticks.x = blank,
+                         axis.ticks.y = blank,
+                         axis.text.x = blank,
+                         axis.text.y = blank,
+                         validate = TRUE, ...)
+  return(no_axes_theme)
+}
+
+#' Remove backgrounds
+#'
+#' @param outline Keep plot outline
+#' @param ...
+#'
+#' @return
+#' @export
+RemoveBackgrounds <- function(outline = FALSE, ...)
+{
+  if (outline) {
+    no_bg_theme <- theme(panel.background = element_rect(fill = "transparent", color = "black", size = 1),
+                         plot.background = element_rect(fill = "transparent", color = "transparent", size = 0),
+                         legend.background = element_rect(fill = "transparent", color = "transparent", size = 0),
+                         legend.box.background = element_rect(fill = "transparent", color = "transparent", size = 0),
+                         panel.grid = element_blank(),
+                         axis.line = element_blank(),
+                         validate = TRUE, ...)
+  } else {
+    no_bg_theme <- theme(panel.background = element_rect(fill = "transparent", color = "transparent", size = 0),
+                         plot.background = element_rect(fill = "transparent", color = "transparent", size = 0),
+                         legend.background = element_rect(fill = "transparent", color = "transparent", size = 0),
+                         legend.box.background = element_rect(fill = "transparent", color = "transparent", size = 0),
+                         panel.grid = element_blank(),
+                         validate = TRUE, ...)
+  }
+
+  return(no_bg_theme)
+}
+
+
+#' Space axis titles away from plot area
+#'
+#' @param scale Increase spacing
+#' @param ...
+#'
+#' @return
+#' @export
+SpaceAxisTitles <- function(scale = 1, ...) {
+  theme (
+    axis.title.x = element_text(face = "plain", margin = margin(12*scale, 0, 0, 0)),
+    axis.title.y = element_text(face = "plain", margin = margin(0, 12*scale, 0, 0)),
+    validate = TRUE
+  )
+}
+
+#' General plotting theme
+#'
+#' @param base_size
+#' @param ...
+#'
+#' @return
+#' @export
+GeneralTheme <- function(base_size, ...) {
+  theme_classic(base_size = base_size, ...) +
+    ggeasy::easy_all_text_color("black") +
+    theme(
+      axis.line = element_blank(),
+      plot.title = element_text(size =  base_size, color = "black", face = "bold", margin = margin(0,0,4,0)),
+      plot.subtitle = element_text(size = base_size - 2, color = "black", margin = margin(0,0,4,0)),
+      panel.background = element_rect(fill = "transparent", color = "black", size = 1),
+      plot.background = element_rect(fill = "transparent", color = "transparent", size = 0),
+      panel.border = element_rect(size = 1, color = "black", fill = "transparent"),
+      plot.caption = element_text(hjust = 0, color = "gray40", margin = margin(12)),
+      legend.title = element_text(size = base_size, face = "bold"),
+      legend.text = element_text(size = base_size - 2),
+      legend.background = element_rect(fill = "transparent", color = "transparent"),
+      legend.box.background = element_rect(fill = "transparent", color = "transparent"),
+      legend.position = "right",
+      legend.justification = "top",
+      legend.key.size = unit(1, "line"),
+      validate = TRUE
+    )
+}
+
 PlotLabelOverlap <- function(object, xvar, yvar) {
 
   res_props <- object[[]] %>%
