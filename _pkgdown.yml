@@ -1,0 +1,15 @@
+url: http://joshpeters.github.io/westerlund
+title: westerlund
+description: toolkit for single-cell RNA-sequencing data
+author: Josh Peters
+destination: docs
+development:
+  mode: release
+template:
+  package: preferably
+  params:
+    toggle: manual
+navbar:
+  structure:
+    left:  [home, reference]
+    right: [github]

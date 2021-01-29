@@ -18,11 +18,13 @@ knitr::opts_chunk$set(
 # westerlund
 
 <!-- badges: start -->
+`r badger::badge_lifecycle("development", "red")`
+`r badger::badge_last_commit("joshpeters/westerlund")`
 <!-- badges: end -->
 
 `westerlund` is a toolkit for single-cell RNA-sequencing analysis built on top of Seurat providing functions to quickly and comprehensively assess clustering results. Inspired by many publications and prior packages (highlighted below), `westerlund` enables data sketching, cluster bootstrapping, automatic and assisted resolution scanning, and metric visualizations. 
 
-`westerlund` utilizes many ideas and functions developed and published by wonderful researchers cited here and within functions. Please cite original and deriative work if possible and deemed appropriate. If you come across work within this package that is derivative but not appropriately cited, please contact us right away so we can include that documentation.
+`westerlund` utilizes many ideas and functions developed and published by wonderful researchers cited here and within functions. Please cite original and derivative work if possible and deemed appropriate. If you come across work within this package that is derivative but not appropriately cited, please contact us right away so we can include that documentation.
 
 ## Why `westerlund` ?
 The functions within `westerlund` provide additional critical functionality for common single-cell analyses that have been implemented in a range of outstanding publications. `r emo::ji("heavy_check_mark")` indicate completed implementation. Functions include:   

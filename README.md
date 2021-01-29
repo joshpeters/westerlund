@@ -4,6 +4,9 @@
 # westerlund
 
 <!-- badges: start -->
+
+[![](https://img.shields.io/badge/lifecycle-development-red.svg)](https://www.tidyverse.org/lifecycle/#development)
+[![](https://img.shields.io/github/last-commit/joshpeters/westerlund.svg)](https://github.com/joshpeters/westerlund/commits/master)
 <!-- badges: end -->
 
 `westerlund` is a toolkit for single-cell RNA-sequencing analysis built
@@ -15,7 +18,7 @@ metric visualizations.
 
 `westerlund` utilizes many ideas and functions developed and published
 by wonderful researchers cited here and within functions. Please cite
-original and deriative work if possible and deemed appropriate. If you
+original and derivative work if possible and deemed appropriate. If you
 come across work within this package that is derivative but not
 appropriately cited, please contact us right away so we can include that
 documentation.
