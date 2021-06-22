@@ -1,5 +1,28 @@
 # FUNCTIONS ---------------------------------------------------------------
 
+#' Create igraph-compatible graph and save in Seurat object
+#'
+#' @param object Seurat object
+#' @param reduction Reduced dimension slot to pull from
+#' @param dims Dimensions to use
+#' @param knn Number of k-nearest neighbors to use
+#'
+#' @return Seurat object with igraph graph stored in `object@misc$westerlund_graph`
+#' @export
+PrepareGraph <- function(object, reduction, dims, knn) {
+  graph.name <- glue::glue("{reduction}_snn_{knn}")
+  stopifnot(ncol(object@reductions[[reduction]]) >= dims)
+  object <- Seurat::FindNeighbors(object = object, k.param = knn, prune.SNN = 1/15, dims = 1:dims,
+                                  reduction = reduction, graph.name = c("nn", graph.name), compute.SNN = TRUE, verbose = FALSE)
+  g <- object@graphs[[graph.name]]
+  attributes(g)[[1]] <- NULL
+  attributes(g)$class <- "dgCMatrix"
+  #adj_matrix <- Matrix::Matrix(as.matrix(object@graphs[[graph.name]]), sparse = TRUE)
+  g <- igraph::graph_from_adjacency_matrix(adjmatrix = g, mode = "undirected", weighted = TRUE, add.colnames = TRUE)
+  object@misc[[glue::glue("{graph.name}")]] <- g
+  return(object)
+}
+
 #' Leiden graph-based clustering
 #'
 #' leidenbase wrapper function to parse and select results
@@ -43,17 +66,99 @@ Cluster <- function(res.param, graph, seed.param, return.params = TRUE, return.c
   }
 }
 
+#' Automated clustering at max or near-max resolution
+#'
+#' @param seurat.obj Seurat object
+#' @param graph.name Graph name
+#' @param col.name Clustering column name
+#' @param mod.percentile Percentile of modularity to use
+#'
+#' @return Seurat object
+#' @export
+AutoCluster <- function(seurat.obj, graph.name = "pca_snn_20", col.name = "pca_leiden", mod.percentile = 1, min.cluster = 9) {
+
+  StartFuture()
+
+  # scan resolutions broadly
+  first_results <- ScanResolutions(g = seurat.obj@misc[[graph.name]],
+                             res.lower = 1E-10,
+                             res.upper = 1,
+                             num.res = 50,
+                             clusters.lb = 10,
+                             clusters.ub = 50,
+                             use.mod = FALSE,
+                             seed.param = 1)
+
+  # scan again for optimal modularity
+  second_results <- ScanResolutions(g = seurat.obj@misc[[graph.name]],
+                             res.lower = first_results$range[1],
+                             res.upper = first_results$range[2],
+                             num.res = 30,
+                             use.mod = TRUE,
+                             mod.percentile = 0.75,
+                             seed.param = 1)
+
+
+  StopFuture()
+
+  # identify and cluster at optimal
+  param_results <- second_results$results
+  max_modularity <- max(param_results$modularity)
+  modularity_cutoff <- max_modularity*mod.percentile
+  max_resolution <- param_results$res_param[param_results$modularity == max_modularity]
+  usethis::ui_info("{sum(param_results$modularity >= modularity_cutoff)} resolutions")
+
+  if (any(param_results$modularity >= modularity_cutoff)) {
+    final_resolution_parameter <- max(param_results$res_param[param_results$modularity >= modularity_cutoff])
+  } else if (!any(param_results$modularity >= modularity_cutoff)) {
+    final_resolution_parameter <- param_results$res_param[param_results$modularity == max_modularity]
+  }
+  usethis::ui_done("Clustering @ {final_resolution_parameter} vs. maximum resolution @ {max_resolution}")
+
+  final_results <- Cluster(res.param = final_resolution_parameter,
+                            graph = seurat.obj@misc[[graph.name]],
+                            seed.param = 1,
+                            return.params = TRUE,
+                            return.clusters = TRUE,
+                            num.iter = 30)
+
+  # group and return membership vector
+  ids <- final_results[[1]]$membership
+  names(ids) <- Cells(seurat.obj)
+  ids <- GroupSingletons(ids, seurat.obj@graphs[[graph.name]],
+                         min.size = min.cluster, group.singletons = TRUE, verbose = TRUE)
+  seurat.obj <- AddMetaData(seurat.obj, ids, col.name = col.name)
+  usethis::ui_done("Identified {length(unique(seurat.obj[[col.name, drop = TRUE]]))} Leiden clusters")
+  Clean()
+  return(seurat.obj)
+}
+
+#' Scan resolutions for appropriate ranges
+#'
+#' @param g igraph graph
+#' @param res.lower starting lower bound
+#' @param res.upper starting upper bound
+#' @param num.res number of steps to take
+#' @param clusters.lb cluster lower bound
+#' @param clusters.ub cluster upper bound
+#' @param use.mod Use modularity instead of cluster numbers
+#' @param mod.percentile Range
+#' @param seed.param Seed
+#'
+#' @return Vector of lower and upper resolution bounds based on modularity percentiles or clusters
+#' @export
 ScanResolutions <- function(g,
-                            res.start = 1E-10,
-                            res.end = 1,
+                            res.lower = 1E-10,
+                            res.upper = 1,
                             num.res = 100,
                             clusters.lb = 10,
                             clusters.ub = 50,
-                            seed.param = 1,
                             use.mod = FALSE,
-                            mod.percentile = 50) {
+                            mod.percentile = 50,
+                            seed.param = 1
+) {
 
-  res_params <-  signif(exp(seq(log(res.start), log(res.end), length.out = num.res)), 3)
+  res_params <-  signif(exp(seq(log(res.lower), log(res.upper), length.out = num.res)), 3)
   usethis::ui_todo("Scanning resolutions ({res_params[1]}, {res_params[length(res_params)]})")
   params_res <- future.apply::future_lapply(X = res_params, FUN = Cluster, graph = g, seed.param = seed.param, return.params = TRUE)
   params_res <- do.call(rbind, params_res)
@@ -70,28 +175,10 @@ ScanResolutions <- function(g,
     params <- c(lower_cluster_res, upper_cluster_res)
   }
   usethis::ui_done("Found bounds ({params[1]}, {params[2]})")
-  return(params)
+  return(list(results = params_res, range = params))
 }
 
-#' Create igraph-compatible graph and save in Seurat object
-#'
-#' @param object Seurat object
-#' @param reduction Reduced dimension slot to pull from
-#' @param dims Dimensions to use
-#' @param knn Number of k-nearest neighbors to use
-#'
-#' @return Seurat object with igraph graph stored in `object@misc$westerlund_graph`
-#' @export
-PrepareGraph <- function(object, reduction, dims, knn) {
-  graph.name <- glue::glue("{reduction}_snn_{knn}")
-  stopifnot(ncol(object@reductions[[reduction]]) > dims)
-  object <- Seurat::FindNeighbors(object = object, k.param = knn, prune.SNN = 1/15, dims = 1:dims,
-                                  reduction = reduction, graph.name = c("nn", graph.name), compute.SNN = TRUE, verbose = FALSE)
-  adj_matrix <- Matrix(as.matrix(object@graphs[[graph.name]]), sparse = TRUE)
-  g <- graph_from_adjacency_matrix(adjmatrix = adj_matrix, mode = "undirected", weighted = TRUE, add.colnames = TRUE)
-  object@misc$westerlund_graph <- g
-  return(object)
-}
+
 
 SampleResolutions <- function(graph, res.start, res.end, num.res, num.samples) {
 
@@ -349,10 +436,10 @@ VisualizeSWK <- function(object) {
 #' @return A data.frame of markers
 #' @export
 DefineMarkers <- function(seurat.obj, group) {
-  markers <- presto::wilcoxauc(seurat.obj, group)
+  markers <- presto::wilcoxauc(seurat.obj@assays$RNA@data, seurat.obj[[group, drop = TRUE]])
   n <- length(unique(markers$group))
   filtered_markers <- markers %>% dplyr::filter(padj <= 1E-3 & auc >= 0.5 & logFC >= log(1.1))
-  StartFutureLapply()
+  StartFuture()
   usethis::ui_info("Calculating gene specificity indices and max-to-second ratios")
   metrics <- future.apply::future_apply(filtered_markers, 1, function(x, markers_table) {
     tbl <- markers_table[markers_table$feature == x["feature"], ]
@@ -362,7 +449,7 @@ DefineMarkers <- function(seurat.obj, group) {
     gsi <- tbl$avgExpr[tbl$group == x["group"]]/(1/n*sum(tbl$avgExpr[tbl$group != x["group"]]))
     return(data.frame(mtsr = mtsr, gsi = gsi))
   }, markers_table = markers)
-  StopFutureLapply()
+  StopFuture()
   metrics <- data.table::rbindlist(metrics)
   filtered_markers <- cbind(filtered_markers, metrics)
   return(filtered_markers)
@@ -381,7 +468,9 @@ GetSTM <- function(x, idx) {
 }
 
 # Modified from Seurat
-GroupSingletons <- function(ids, SNN, min.size = 9, clusters.to.merge, group.singletons = TRUE, verbose = TRUE) {
+GroupSingletons <- function(ids, snn, min.size = 9, clusters.to.merge, group.singletons = TRUE, verbose = TRUE) {
+
+  usethis::ui_info("Merging small or provided clusters")
 
   # identify singletons
   singletons <- c()
@@ -410,7 +499,7 @@ GroupSingletons <- function(ids, SNN, min.size = 9, clusters.to.merge, group.sin
       i.cells <- names(which(ids == i))
       for (j in cluster_names) {
         j.cells <- names(which(ids == j))
-        subSNN <- SNN[i.cells, j.cells]
+        subSNN <- snn[i.cells, j.cells]
         set.seed(1) # to match previous behavior, random seed being set in WhichCells
         if (is.object(x = subSNN)) {
           connectivity[j] <- sum(subSNN) / (nrow(x = subSNN) * ncol(x = subSNN))
@@ -435,4 +524,33 @@ GroupSingletons <- function(ids, SNN, min.size = 9, clusters.to.merge, group.sin
   }
 
   return(ids)
+}
+
+LLClassifier <- function(object, index, slot, assay) {
+  scmatrix <- GetAssayData(object, assay = assay, slot = slot)
+  genes <- intersect(rownames(index), rownames(scmatrix))
+
+  index_norm <- t(t(index) / colSums(index))
+  index_norm = index_norm[genes, ]
+  scmatrix <- scmatrix[genes, ]
+  index_norm <- index_norm[rownames(scmatrix), ]
+  loglikelihood = apply(scmatrix, 2, function(x) colSums(x * log(index_norm)))
+  post_probs = apply(loglikelihood , 2, function(x) {exp(x - max(x) - log(sum(x / max(x))))})
+  top_classified = apply(post_probs, 2, function(x) {
+    rownames(post_probs)[order(x, decreasing = T)[1]]
+  })
+  return(list(ll = loglikelihood, pp = post_probs, call = top_classified))
+}
+
+RunISClassifier <- function(object, reference_path = "data/reference") {
+
+  is_expr <- readRDS(file = glue::glue("{reference_path}/is_expr.rds"))
+  is_expr_names <- readRDS(file = glue::glue("{reference_path}/is_expr_class.rds"))
+  lls <- LLClassifier(object, is_expr)
+  calls <- ConvertNamedVecToDF(lls$call)
+  calls <- calls %>% select(value)
+  object <- AddMetaData(object, calls, col.name = "IS")
+  object$IS_Class <- recode(object$IS, !!!is_expr_names)
+  return(object)
+
 }
